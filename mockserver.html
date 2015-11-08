@@ -1,0 +1,191 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta http-equiv='Content-Type' content='text/html;charset=UTF-8'/>
+        <script src="https://openui5.hana.ondemand.com/resources/sap-ui-core.js"
+                id="sap-ui-bootstrap"
+                data-sap-ui-libs="sap.ui.commons, sap.ui.table"
+                data-sap-ui-theme="sap_bluecrystal"
+                data-sap-ui-xx-bindingSyntax="complex">
+        </script>
+        <!-- only load the mobile lib "sap.m" and the "sap_bluecrystal" theme -->
+
+        <script>
+            
+            jQuery.sap.require("sap.ui.core.util.MockServer");
+            // ApplicationHeader control
+            var oAppHeader = new sap.ui.commons.ApplicationHeader("appHeader"); 
+            oAppHeader.setLogoSrc("http://media.cylex.de/companies/3347/106/logo/logo.jpg");
+            oAppHeader.setDisplayWelcome(false);
+            oAppHeader.setDisplayLogoff(false);
+            oAppHeader.placeAt("content");
+            
+            // Create mockserver
+            var oMockServer = new sap.ui.core.util.MockServer({
+                rootUri: "http://mymockserver/",
+            });			
+            oMockServer.simulate("model/metadata.xml", "model/");
+            oMockServer.start();
+
+            // setting up model
+            var oModel = new sap.ui.model.odata.ODataModel("http://mymockserver/", true);
+            sap.ui.getCore().setModel(oModel);
+            
+            
+            /*****   CREATE Operation  *****/
+            function openCreateDialog(){ 
+                var oCreateDialog = new sap.ui.commons.Dialog();
+                oCreateDialog.setTitle("Patient Data Entry");
+                var oSimpleForm = new sap.ui.layout.form.SimpleForm({
+                    maxContainerCols: 2,
+                    content:[
+                        new sap.ui.core.Title({text:"Person"}),
+                        new sap.ui.commons.Label({text:"Email"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({text:"Firstname"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({text:"Lastname"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({text:"Age"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({text:"Address"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({text:"Disease"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        
+                    ]
+                });                
+                oCreateDialog.addContent(oSimpleForm);
+                oCreateDialog.addButton(
+                    new sap.ui.commons.Button({
+                        text: "Submit", 
+                        press: function() {
+                            var content = oSimpleForm.getContent();
+                            var oEntry = {};
+                            oEntry.Email = content[2].getValue();
+                            oEntry.Firstname = content[4].getValue();
+                            oEntry.Lastname = content[6].getValue();
+                            oEntry.Age = content[8].getValue();
+                            oEntry.Address = content[10].getValue();
+                            oEntry.Disease = content[10].getValue();
+                            sap.ui.getCore().getModel().create('/UserSet', oEntry, null, function(){
+                                    oCreateDialog.close();
+                                    sap.ui.getCore().getModel().refresh();
+                                },function(){
+                                    oCreateDialog.close();
+                                    alert("Create failed");
+                                }
+                            );
+                        }
+                    })
+                );
+                oCreateDialog.open();
+            };        
+            
+
+            
+            /*****   DELETE Operation  *****/
+            function openDeleteDialog(email) {
+                var oDeleteDialog = new sap.ui.commons.Dialog();
+                oDeleteDialog.setTitle("Delete user");
+                var oText = new sap.ui.commons.TextView({text: "Are you sure to delete this user?"});
+                oDeleteDialog.addContent(oText);
+                oDeleteDialog.addButton(
+                    new sap.ui.commons.Button({
+                        text: "Confirm", 
+                        press:function(){ 
+                            sap.ui.getCore().getModel().remove("/UserSet('" + email + "')", null, function() {
+                                sap.ui.getCore().getModel().refresh();
+                                oDeleteDialog.close();
+                            },function(){
+                                oDeleteDialog.close();
+                                alert("Delete failed");
+                            });
+                        }
+                    })
+                );
+                oDeleteDialog.open();
+            }
+
+            // setting up table
+            var oTable = new sap.ui.table.Table({
+                editable: false,
+                toolbar: new sap.ui.commons.Toolbar({ 
+                    items: [ 
+                        new sap.ui.commons.Button({
+                            text: "Patient Data", 
+                            press: function() {
+                                openCreateDialog();
+                            }, 
+                        }),
+
+                        new sap.ui.commons.Button({
+                            text: "Delete user", 
+                            press: function() {
+                                var idx = oTable.getSelectedIndex();
+                                if (idx == -1) return;
+                                var rows = oTable.getRows();
+                                var user = rows[idx].getCells();
+                                openDeleteDialog(user[0].getValue());
+                            }, 
+                        })
+                    ]
+                }),
+            });
+        
+            oTable.addColumn(new sap.ui.table.Column({
+                label: new sap.ui.commons.Label({text: "Email"}),
+                template: new sap.ui.commons.TextField().bindProperty("value", "Email"),
+                editable: false,
+                sortProperty: "Email"
+            }));
+        
+            oTable.addColumn(new sap.ui.table.Column({
+                label: new sap.ui.commons.Label({text: "Firstname"}),
+                template: new sap.ui.commons.TextField().bindProperty("value", "Firstname"),
+                sortProperty: "Firstname",
+                editable: false,
+            }));
+        
+            oTable.addColumn(new sap.ui.table.Column({
+                label: new sap.ui.commons.Label({text: "Lastname"}),
+                template: new sap.ui.commons.TextField().bindProperty("value", "Lastname"),
+                sortProperty: "Lastname",
+                editable: false,
+            }));
+        
+            oTable.addColumn(new sap.ui.table.Column({
+                label: new sap.ui.commons.Label({text: "Age"}),
+                template: new sap.ui.commons.TextField().bindProperty("value", "Age"),
+                sortProperty: "Age",
+                editable: false,
+            }));
+        
+            oTable.addColumn(new sap.ui.table.Column({
+                label: new sap.ui.commons.Label({text: "Address"}),
+                template: new sap.ui.commons.TextField().bindProperty("value", "Address"),
+                sortProperty: "Address",
+                editable: false,
+            }));
+            
+             oTable.addColumn(new sap.ui.table.Column({
+                label: new sap.ui.commons.Label({text: "Disease"}),
+                template: new sap.ui.commons.TextField().bindProperty("value", "Disease"),
+                sortProperty: "Disease",
+                editable: false,
+            }));
+            
+            
+            oTable.setModel(oModel);
+            oTable.bindRows("/UserSet");
+            oTable.placeAt("content");
+        
+
+        </script>
+
+    </head>
+    <body class="sapUiBody" role="application">
+        <div id="content"></div>
+    </body>
+</html>

@@ -1,0 +1,26 @@
+[    
+      {
+        "Email" : "girishramachandrappa@yahoo.com",
+        "Firstname" : "Girish",
+        "Lastname" : "Ramachandrappa",
+        "Age" : 45,
+        "Address" : "India, Banglore",
+        "Disease" : "Glycoma"
+      },
+      {
+        "Email" : "ajayholla@gmail.com",
+        "Firstname" : "Ajay",
+        "Lastname" : "Holla",
+        "Age" : 52,
+        "Address" : "Germany, Stuttgart",
+         "Disease" : "Insomiya"
+      },
+      {
+        "Email" : "kishuyuvi@gmail.com",
+        "Firstname" : "Kishu",
+        "Lastname" : "Yuvi",
+        "Age" : 35,
+        "Address" : "Germany, Heidelberg",
+         "Disease" : "Jaundice"
+      }
+]
